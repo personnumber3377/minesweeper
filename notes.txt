@@ -1,0 +1,3 @@
+def move (y, x):
+    print("\033[%d;%dH" % (y, x))
+# Thanks to https://stackoverflow.com/questions/54630766/how-can-move-terminal-cursor-in-python
