@@ -3,7 +3,6 @@ import numpy as np
 import random
 import sys
 import termios
-import time
 
 def enable_echo(fd, enabled):
 	(iflag, oflag, cflag, lflag, ispeed, ospeed, cc) = termios.tcgetattr(fd)
@@ -28,13 +27,12 @@ MINE_NUMBER = 10
 MARK_MOVE = 0
 REVEAL_MOVE = 1
 
-mouse_x = 1
-mouse_y = 1
+mouse_x = 0
+mouse_y = 0
 
 pressed_enter = False
 
 from pynput.keyboard import Listener, Key
-from pynput import keyboard
 #import logging
 
 # Setup logging
@@ -300,14 +298,9 @@ def setup_minefield() -> Minefield:
 	return field
 
 
-def check_press(event, char):
-	assert isinstance(char,str)
-	assert len(char) == 1
-	#res = event == keyboard.Events.Press(keyboard.KeyCode.from_char(char))
-	res = (isinstance(event, keyboard.Events.Press) and str(event.key)[1] == char)
-	return res
 
-def get_mouse_pos(field: Minefield) -> tuple:
+
+def get_move() -> tuple:
 	#move_input = str(input("Which position would you like to reveal? : "))
 
 
@@ -323,144 +316,56 @@ def get_mouse_pos(field: Minefield) -> tuple:
 	#	return reversed([int(x) for x in move_input.split(",")])
 
 
-	time.sleep(0.05)
-
-	max_x = len(field.mines[0])
-	max_y = len(field.mines)
 
 
 	#return reversed([int(x) for x in move_input.split(", ")])
 
 	global pressed_enter
-	global mouse_y
-	global mouse_x
 
 	while pressed_enter == False:
-		#continue # Wait for the player to press enter.
-		event_list = []
-		with keyboard.Events() as events: # Keyboard events.
-
-			for event in events:
-				if isinstance(event, keyboard.Events.Release):
-					continue
-				#event_list.append(event)
-
-				#print("event_list == "+str(event_list))
-
-
-				#for event in event_list:
-
-				#print(event)
-				#print("event.key == "+str(event.key))
-				#event = events[0]
-				#key = event.key
-				#print("event.__dir__() == "+str(event.__dir__()))
-				# Copy the logic
-				#print("key.__dir__ == "+str(key.__dir__()))
-				#key = str(key)[1]
-				#print("key == "+str(key))
-
-
-
-
-				if check_press(event, "s"):
-					mouse_y += 1
-					if mouse_y > max_y:
-						mouse_y = max_y
-					cursor_move(mouse_x, mouse_y)
-				if check_press(event, "w"):
-					if mouse_y <= 1:
-						continue # Do not move, because otherwise mouse_y would become negative.
-
-					mouse_y -= 1
-					cursor_move(mouse_x, mouse_y)
-
-				if check_press(event, "d"):
-					mouse_x += 1
-					if mouse_x > max_x:
-						mouse_x = max_x
-					cursor_move(mouse_x, mouse_y)
-
-				if check_press(event, "a"):
-					if mouse_x <= 1:
-						continue
-					mouse_x -= 1
-					cursor_move(mouse_x, mouse_y)
-
-				if event.key == Key.enter:
-					pressed_enter = True
-					#print("Pressed enter")
-					break
-
-	#print("Pressed enterfefefefefefefe")
+		continue # Wait for the player to press enter.
 	pressed_enter = False
-	#global mouse_x
-	#global mouse_y
+	global mouse_x
+	global mouse_y
 	return [mouse_y, mouse_x]
 
 
-def get_move(field: Minefield, mouse_position: tuple):
 
-	# Converts the mouse position to coordinates on the map. Returns None if an invalid position. (Should not be possible.)
-	mouse_position = list(mouse_position)
-	mouse_position[0] -= 1
-	mouse_position[1] -= 1
-
-	x = mouse_position[0]
-	y = mouse_position[1]
-
-	if x < 0 or y < 0:
-		return None
-	if x >= len(field.mines[0]):
-		return None
-	if y >= len(field.mines):
-		return None
-	return tuple(mouse_position)
 
 def main() -> int:
 	field = setup_minefield()
-	#print("Input coordinates are in the format x, y")
+	print("Input coordinates are in the format x, y")
 	#listener = Listener(on_press=on_press, on_release=on_release)
-	#with Listener(on_press=on_press, on_release=on_release) as listener:  # Create an instance of Listener
-	#listener.start()  # Join the listener thread to the main thread to keep waiting for keys
-	#listener.join()
-	
-	global mouse_x
-	global mouse_y
-	
-	enable_echo(0,False)
-	clear()
-	
-	while True:
+	with Listener(on_press=on_press, on_release=on_release) as listener:  # Create an instance of Listener
+		#listener.start()  # Join the listener thread to the main thread to keep waiting for keys
+		listener.join()
 		clear()
-		field.render()
-		cursor_move(mouse_x, mouse_y)
-		#listener.join()
 		
-		mouse_pos = get_mouse_pos(field)
-		#print("move == "+str(move))
-		
-		move = get_move(field, mouse_pos)
-		#if move == "showmines":
-		#	field.reveal_mines()
-		#	continue
-		if(field.update(move, REVEAL_MOVE)):
-			break
-		field.render()
-		if field.have_won():
-			print("You have won! Congratulations!")
-			return 0
-		#field.render()
-		#field.reveal_mines()
-		#print("\b"*1000+" "*10000+"\b"*100)
-		print("poopooo")
-		clear()
-		#sys.stdout.flush()
-	sys.stdin.flush()
+		while True:
+			clear()
+			field.render()
+			#listener.join()
+			
+			move = get_move()
+			if move == "showmines":
+				field.reveal_mines()
+				continue
+			if(field.update(move, REVEAL_MOVE)):
+				break
+			field.render()
+			if field.have_won():
+				print("You have won! Congratulations!")
+				return 0
+			#field.render()
+			#field.reveal_mines()
+			#print("\b"*1000+" "*10000+"\b"*100)
+			print("poopooo")
+			clear()
+			#sys.stdout.flush()
+
 	return 0
 import atexit
 atexit.register(enable_echo, sys.stdin.fileno(), True)
 if __name__=="__main__":
-	# enable_echo(0,False)
-	sys.stdin.flush()
+	enable_echo(0,False)
 	exit(main())
