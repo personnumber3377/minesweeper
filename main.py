@@ -249,13 +249,11 @@ class Minefield:
 		return 0
 
 	def have_won(self):
-		#print("self.shown == "+str(self.shown))
 		for i, line in enumerate(self.shown):
 			for j, elem in enumerate(line):
 				if elem == HIDDEN_SPACE:
 					# Check if a bomb spot, if yes, then continue, if not, then there are bombs, which aren't been designated yet.
-					#print("[j,i] == "+s)
-					if [j,i] not in self.mine_positions:
+					if [i,j] not in self.mine_positions:
 						return False # We have not won
 		return True
 
@@ -453,7 +451,7 @@ def main() -> int:
 		#field.render()
 		#field.reveal_mines()
 		#print("\b"*1000+" "*10000+"\b"*100)
-		print("poopooo")
+		#print("poopooo")
 		clear()
 		#sys.stdout.flush()
 	sys.stdin.flush()
